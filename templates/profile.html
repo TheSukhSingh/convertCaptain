@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile | Convert Captain{% endblock %}
+{% block description %}Your profile and conversion history{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-main">
+  <section class="profile-header">
+    <div class="profile-avatar-container">
+      <img src="https://ui-avatars.com/api/?name={{ current_user.name }}&background=random" alt="{{ current_user.name }}" class="profile-avatar">
+<span class="profile-tier-badge {{ current_user.plan.name|lower }}">
+  {{ current_user.plan.name|capitalize }}
+</span>
+
+    </div>
+    
+    <div class="profile-info">
+      <h1>{{ current_user.name }}</h1>
+      <div class="profile-email">{{ current_user.email }}</div>
+      
+      <div class="profile-stats">
+        <div class="stat-item">
+          <div class="stat-value" id="conversions-today">{{ conversions_today or 0}}</div>
+          <div class="stat-label">Conversions Today</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="conversions-month">{{ conversions_month or 0 }}</div>
+          <div class="stat-label">Conversions This Month</div>
+        </div>
+
+      </div>
+    </div>
+    
+    <div class="profile-actions">
+     
+      <a href="{{ url_for('tiers') }}" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12 5V3M12 21V19M5 12H3M21 12H19M18.364 18.364L16.95 16.95M18.364 5.636L16.95 7.05M5.636 5.636L7.05 7.05M5.636 18.364L7.05 16.95" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Upgrade Plan
+      </a>
+    </div>
+  </section>
+  
+  <!-- Profile Content -->
+  <div class="profile-content">
+    <!-- Activity and Analytics -->
+    <section class="profile-section analytics-section">
+      <h2 class="section-title">Conversion Analytics</h2>
+      
+      <div class="activity-chart-container">
+        <canvas id="activity-chart"></canvas>
+      </div>
+      
+      <div class="conversion-metrics">
+
+        
+        <div class="metric-item">
+          <div class="metric-icon efficiency-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22 12H18L15 21L9 3L6 12H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="metric-info">
+            <h3>Conversion Streak</h3>
+           <p>{{ streak }} day{{ '' if streak == 1 else 's' }}</p>
+
+          </div>
+        </div>
+        
+        <div class="metric-item">
+          <div class="metric-icon quality-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2"/>
+              <path d="M19.4 15C19.2669 15.3016 19.2272 15.6362 19.287 15.9606C19.3467 16.285 19.5043 16.5843 19.74 16.82L19.79 16.88C20.1428 17.2337 20.3367 17.7101 20.3346 18.2053C20.3325 18.7005 20.1346 19.1752 19.778 19.526C19.4214 19.8768 18.9448 20.0665 18.4489 20.0603C17.953 20.054 17.4807 19.8522 17.132 19.492L17.072 19.432C16.8355 19.1962 16.5355 19.0385 16.2107 18.9788C15.8858 18.919 15.5507 18.9594 15.249 19.093C14.9474 19.2166 14.6976 19.4271 14.5348 19.695C14.372 19.963 14.3035 20.2743 14.34 20.583L14.35 20.683C14.3588 21.1791 14.1667 21.6592 13.8122 22.0128C13.4577 22.3665 12.9773 22.5574 12.481 22.548C11.9847 22.5386 11.5113 22.3297 11.1716 21.9624C10.8319 21.5952 10.6635 21.108 10.696 20.613L10.706 20.513C10.7425 20.2043 10.674 19.893 10.5112 19.625C10.3484 19.3571 10.0986 19.1466 9.797 19.023C9.49496 18.8889 9.15934 18.8484 8.83395 18.9083C8.50856 18.9683 8.20818 19.1267 7.971 19.364L7.911 19.424C7.56228 19.7842 7.08988 19.986 6.59402 19.9923C6.09816 19.9986 5.6216 19.8089 5.265 19.458C4.9084 19.1072 4.71053 18.6325 4.70838 18.1373C4.70624 17.6421 4.90017 17.1657 5.253 16.812L5.313 16.752C5.54871 16.5163 5.70639 16.217 5.76613 15.8926C5.82587 15.5682 5.78618 15.2336 5.653 14.932C5.51818 14.6304 5.30764 14.3806 5.03972 14.2178C4.7718 14.055 4.46044 13.9865 4.152 14.023L4.052 14.033C3.55495 14.0701 3.06718 13.9048 2.69364 13.5672C2.32011 13.2296 2.10826 12.7574 2.095 12.262C2.10135 11.7658 2.29321 11.2857 2.64686 10.9317C3.00051 10.5777 3.48035 10.3863 3.977 10.395L4.077 10.405C4.38655 10.4415 4.69791 10.373 4.96583 10.2102C5.23375 10.0474 5.4443 9.79764 5.579 9.496C5.71218 9.19437 5.75187 8.85875 5.69213 8.53336C5.63239 8.20796 5.47471 7.90758 5.239 7.67L5.179 7.61C4.82617 7.2563 4.63224 6.77991 4.63438 6.28469C4.63653 5.78946 4.8344 5.31477 5.191 4.964C5.54759 4.61324 6.02416 4.42353 6.52002 4.4298C7.01588 4.43607 7.48828 4.63789 7.837 4.998L7.897 5.058C8.13418 5.29575 8.43456 5.45333 8.75995 5.51307C9.08534 5.57281 9.42096 5.53312 9.723 5.4C10.0246 5.26642 10.2744 5.05637 10.4374 4.78844C10.6004 4.52052 10.669 4.20899 10.633 3.9L10.623 3.8C10.5865 3.30473 10.7778 2.82487 11.132 2.47121C11.4863 2.11756 11.9663 1.9257 12.463 1.919C12.9584 1.92226 13.4306 2.13412 13.7683 2.50765C14.106 2.88118 14.2713 3.36895 14.234 3.866L14.224 3.966C14.1875 4.27444 14.256 4.5858 14.4188 4.85372C14.5816 5.12165 14.7921 5.33219 15.094 5.467C15.3956 5.60018 15.7312 5.63987 16.0566 5.58013C16.382 5.52039 16.6824 5.36271 16.92 5.127L16.98 5.067C17.3287 4.7069 17.801 4.50509 18.2968 4.49882C18.7927 4.49255 19.2693 4.68226 19.626 5.033C19.9826 5.38377 20.1804 5.85846 20.1826 6.35369C20.1847 6.84891 19.9908 7.3253 19.644 7.679L19.584 7.739C19.3483 7.97658 19.1906 8.27696 19.1309 8.60235C19.0711 8.92774 19.1108 9.26337 19.245 9.565C19.3788 9.86737 19.5893 10.1172 19.8573 10.28C20.1252 10.4428 20.4366 10.5113 20.726 10.475L20.826 10.465C21.3223 10.4286 21.8104 10.6189 22.164 10.9733C22.5176 11.3277 22.7086 11.8083 22.7 12.305C22.6894 12.8018 22.4992 13.2752 22.1321 13.6149C21.765 13.9547 21.2782 14.1233 20.783 14.091L20.683 14.081C20.3743 14.0445 20.0629 14.113 19.795 14.2758C19.5271 14.4386 19.3166 14.6884 19.193 14.99" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="metric-info">
+            <h3>Conversions Remaining</h3>
+            <p>
+
+         <p id="conversions-today">
+{% if current_user.plan.conversion_limit %}
+  {{ current_user.plan.conversion_limit - current_user.conversion_count }} of {{ current_user.plan.conversion_limit }}
+{% else %}
+  Unlimited
+{% endif %}
+
+</p>
+    </p>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Tips and Tricks Section -->
+    <section class="profile-section tips-section">
+      <h2 class="section-title">File Conversion Tips</h2>
+      
+      <div class="tips-list">
+        <div class="tip-item">
+          <div class="tip-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 16V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 8H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="tip-content">
+            <h3>Optimize Before Convert</h3>
+            <p>For faster conversions and better quality, compress your images before uploading.</p>
+          </div>
+        </div>
+        
+        <div class="tip-item">
+          <div class="tip-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M18.7273 14.7273C18.6063 15.0909 18.6273 15.4947 18.7964 15.8432C18.9655 16.1916 19.2618 16.4545 19.6182 16.5818L19.6818 16.6C20.0836 16.7539 20.4081 17.0567 20.5818 17.44C20.7555 17.8233 20.7637 18.2555 20.6055 18.6455C20.4472 19.0354 20.1349 19.3494 19.7417 19.5164C19.3486 19.6835 18.9023 19.6901 18.5045 19.5345L18.44 19.5073C18.0811 19.3842 17.6869 19.4075 17.3436 19.5718C17.0003 19.736 16.7391 20.0272 16.6127 20.3818C16.5064 20.6873 16.2695 20.9418 15.9571 21.085C15.6447 21.2282 15.2876 21.2481 14.9636 21.1418C14.6396 21.0354 14.385 20.8096 14.2379 20.5033C14.0908 20.197 14.0649 19.8435 14.1636 19.5182L14.1818 19.4545C14.3056 19.0954 14.2822 18.7009 14.1177 18.3576C13.9532 18.0143 13.6618 17.7534 13.3073 17.6273H13.2727C12.9103 17.5096 12.6049 17.2728 12.4029 16.9579C12.2009 16.6429 12.1164 16.2673 12.1667 15.8964C12.217 15.5254 12.3985 15.1881 12.6745 14.9443C12.9505 14.7005 13.3028 14.5654 13.6727 14.5636H13.7455C14.1072 14.5455 14.448 14.3951 14.694 14.1382C14.94 13.8813 15.0756 13.5371 15.0764 13.1782V13.1455C15.0764 12.7815 15.2219 12.4326 15.4807 12.1789C15.7394 11.9252 16.0915 11.7882 16.4564 11.7973C16.8214 11.8064 17.1646 11.9608 17.4088 12.2271C17.6531 12.4935 17.7791 12.8498 17.7582 13.2128V13.2255C17.7459 13.5929 17.879 13.9514 18.1318 14.2193C18.3847 14.4871 18.735 14.6445 19.1045 14.6582H19.1455C19.5101 14.6771 19.8518 14.8322 20.0968 15.0887C20.3417 15.3451 20.4705 15.6815 20.4568 16.0264C20.4432 16.3713 20.2883 16.6974 20.0255 16.9354C19.7627 17.1734 19.4175 17.3101 19.06 17.3091H19C18.6409 17.3209 18.3039 17.4765 18.0569 17.7394C17.81 18.0023 17.6725 18.3527 17.6727 18.7182C17.6727 18.7782 17.6727 18.84 17.6891 18.9L17.7055 18.96C17.8045 19.2843 17.7786 19.6377 17.6315 19.944C17.4844 20.2504 17.2298 20.4762 16.9059 20.5825C16.5819 20.6889 16.2248 20.669 15.9124 20.5258C15.6 20.3826 15.3631 20.1281 15.2569 19.8227C15.1306 19.4681 14.8694 19.1768 14.5261 19.0126C14.1828 18.8484 13.7886 18.825 13.4298 18.9482L13.3655 18.9754C12.9677 19.131 12.5214 19.1245 12.1282 18.9574C11.7351 18.7904 11.4228 18.4764 11.2645 18.0864C11.1063 17.6965 11.1145 17.2643 11.2882 16.8809C11.4619 16.4976 11.7864 16.1948 12.1882 16.0409L12.2518 16.0227C12.6082 15.8955 12.9046 15.6326 13.0736 15.2841C13.2427 14.9356 13.2637 14.5318 13.1427 14.1682" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9 10C9 9.40666 8.82405 8.82664 8.49441 8.33329C8.16477 7.83994 7.69623 7.45543 7.14805 7.22836C6.59987 7.0013 5.99667 6.94189 5.41473 7.05765C4.83279 7.1734 4.29824 7.45912 3.87868 7.87868C3.45912 8.29824 3.1734 8.83279 3.05765 9.41473C2.94189 9.99667 3.0013 10.5999 3.22836 11.1481C3.45543 11.6962 3.83994 12.1648 4.33329 12.4944C4.82664 12.8241 5.40666 13 6 13H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9 18C9 17.606 8.9224 17.2159 8.77164 16.8519C8.62087 16.4879 8.39981 16.1573 8.12132 15.8787C7.84283 15.6002 7.51213 15.3791 7.14805 15.2284C6.78397 15.0776 6.39399 15 6 15C5.60601 15 5.21603 15.0776 4.85195 15.2284C4.48787 15.3791 4.15717 15.6002 3.87868 15.8787C3.60019 16.1573 3.37913 16.4879 3.22836 16.8519C3.0776 17.2159 3 17.606 3 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M6 13V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="tip-content">
+            <h3>Batch Processing</h3>
+            <p>Upgrade to Pro to convert multiple files at once and save up to 70% of your time.</p>
+          </div>
+        </div>
+        
+        <div class="tip-item">
+          <div class="tip-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M16 13H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M16 17H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M10 9H9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="tip-content">
+            <h3>PDF Compression</h3>
+            <p>Use our advanced settings to reduce PDF file size without losing quality.</p>
+          </div>
+        </div>
+      </div>
+      
+    </section>
+    
+    <!-- Subscription Section -->
+    <section class="profile-section subscription-section">
+      <h2 class="section-title">Your Plan</h2>
+      
+      <div class="current-plan-container">
+        <div class="plan-header">
+<div class="plan-name {{ current_user.plan.name|lower }}">
+  {{ current_user.plan.name|capitalize }}
+</div>
+<div class="plan-price">
+  {% if current_user.plan.name == 'free' %}
+    $0<span>/month</span>
+  {% elif current_user.plan.name == 'plus' %}
+    $4.99<span>/month</span>
+  {% elif current_user.plan.name == 'pro' %}
+    $19.99<span>/month</span>
+  {% endif %}
+</div>
+
+          
+          </div>
+   
+        
+        <div class="plan-features">
+          <div class="plan-feature-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+
+  {{ current_user.plan.conversion_limit if current_user.plan.conversion_limit else 'Unlimited' }} conversions
+  {% if current_user.plan.name in ['free', 'plus'] %}
+    /day
+  {% endif %}
+
+          </div>
+          </div>
+
+          <div class="plan-feature-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+{% if current_user.plan.name == 'pro' %}
+  <span>Priority conversion</span>
+{% else %}
+  <span>Standard conversion speed</span>
+{% endif %}
+
+          </div>
+ 
+
+        </div>
+        
+{% if current_user.plan.name != 'pro' %}
+  <a href="{{ url_for('tiers') }}" class="btn btn-primary upgrade-btn">Upgrade Plan</a>
+{% endif %}
+
+      </div>
+    </section>
+    
+<!-- Payment History Section -->
+<section class="profile-section payment-section">
+  <h2 class="section-title">Payment History</h2>
+
+  {% if payment_history %}
+    <div class="payment-list">
+      {% for payment in payment_history %}
+        <div class="payment-item">
+          <div class="payment-info">
+            <div class="payment-date">{{ payment.date.strftime('%Y-%m-%d') }}</div>
+            <div class="payment-plan">{{ payment.plan|capitalize }}</div>
+          </div>
+          <div class="payment-amount">${{ "%.2f"|format(payment.amount) }}</div>
+          <div class="payment-status {{ payment.status|lower }}">{{ payment.status }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="no-payment-history">
+      <p>No payment history available for your free account.</p>
+      <a href="{{ url_for('tiers') }}" class="view-all-link">View premium plans</a>
+    </div>
+  {% endif %}
+</section>
+
+    
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  window.userConversionData = {{ chart_data | tojson | safe }};
+</script>
+
+
+<script src="{{ url_for('static', filename='profile.js') }}"></script>
+{% endblock %}

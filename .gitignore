@@ -1,0 +1,8 @@
+# Secrets
+.env
+
+# Virtualenv
+.venv/
+
+# SQLite instance dir
+instance/

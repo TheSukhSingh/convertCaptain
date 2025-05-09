@@ -1,0 +1,125 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Convert Captain{% endblock %}
+{% block description %}Convert your files to any format{% endblock %}
+
+{% block content %}
+        <h1 class="main-title">File Converter</h1>
+        <p class="main-subtitle">Convert your files to any format</p>
+        
+        <div class="drop-zone" id="drop-zone">
+          <div class="drop-zone-content">
+            <div class="upload-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <p class="drop-text">Drop files here. 100 MB maximum file size</p>
+          </div>
+        </div>
+
+<input type="file" id="file-input" accept=".heic" class="file-input">
+
+<!-- 1) Initial “Choose File” button -->
+<div class="button-group" id="initial-actions">
+  <button class="btn btn-primary" id="choose-file-btn-initial">
+    <!-- icon --> Choose File
+  </button>
+</div>
+
+<!-- 2) Dashed box with only the format‐picker -->
+<div id="conversion-options" class="drop-zone" style="display: none;">
+  <div class="show-zone">
+    <div id="image-preview"></div>
+    <div class="format-buttons">
+      <button class="format-option btn btn-secondary" data-format="png">Convert to PNG</button>
+      <button class="format-option btn btn-secondary" data-format="jpeg">Convert to JPG</button>
+      <button class="format-option btn btn-secondary" data-format="pdf">Convert to PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- 3) New conversion‐actions group wrapping both buttons -->
+<div class="button-group" id="conversion-actions" style="display: none;">
+  <button class="btn btn-primary" id="choose-file-btn-conversion">
+    <!-- icon --> Choose File
+  </button>
+  <button class="btn btn-primary" id="convert-btn">
+    <!-- icon --> Download
+  </button>
+</div>
+
+
+</div>
+        
+        <div class="features-container">
+          <div class="feature-card">
+            <div class="feature-icon formats">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 12C15 13.6569 13.6569 15 12 15C10.3431 15 9 13.6569 9 12C9 10.3431 10.3431 9 12 9C13.6569 9 15 10.3431 15 12Z" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 4C16.4183 4 20 7.58172 20 12C20 16.4183 16.4183 20 12 20C7.58172 20 4 16.4183 4 12C4 7.58172 7.58172 4 12 4Z" stroke="currentColor" stroke-width="2"/>
+                <path d="M4 12H9M15 12H20" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </div>
+            <h3>Premium Quality Conversion</h3>
+            <p>Enjoy fast and accurate file conversions with no ads or distractions. We focus on delivering a smooth, premium user experience from upload to download.</p>
+          </div>
+          
+          <div class="feature-card">
+            <div class="feature-icon speed">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h3>Fast and easy</h3>
+            <p>Just drop your files on the page, choose an output format and click "Convert" button. Wait a little for the process to complete. You will be in awe of our conversion speed (1-2 minutes).</p>
+          </div>
+          
+          <div class="feature-card">
+            <div class="feature-icon cloud">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 16C3.79086 16 2 14.2091 2 12C2 9.79086 3.79086 8 6 8C6.06612 8 6.13196 8.00172 6.19742 8.00514C6.68388 6.20751 8.26087 4.87085 10.1667 4.87085C12.0724 4.87085 13.6494 6.20751 14.1359 8.00514C14.2013 8.00172 14.2672 8 14.3333 8C16.5425 8 18.3333 9.79086 18.3333 12C18.3333 14.2091 16.5425 16 14.3333 16M12 12V21M12 21L9 18M12 21L15 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h3>In the cloud</h3>
+            <p>All conversions take place in the cloud and will not consume any capacity from your computer.</p>
+          </div>
+        </div>
+        
+        <div class="features-container">
+          <div class="feature-card">
+            <div class="feature-icon settings">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M19.4 15C19.1277 15.6171 19.2583 16.3378 19.73 16.82L19.79 16.88C20.1656 17.2551 20.3766 17.7642 20.3766 18.295C20.3766 18.8258 20.1656 19.3349 19.79 19.71C19.4149 20.0856 18.9058 20.2966 18.375 20.2966C17.8442 20.2966 17.3351 20.0856 16.96 19.71L16.9 19.65C16.4178 19.1783 15.6971 19.0477 15.08 19.32C14.4755 19.5791 14.0826 20.1724 14.08 20.83V21C14.08 21.5304 13.8693 22.0391 13.4942 22.4142C13.1191 22.7893 12.6104 23 12.08 23C11.5496 23 11.0409 22.7893 10.6658 22.4142C10.2907 22.0391 10.08 21.5304 10.08 21V20.91C10.0676 20.2327 9.64571 19.6339 9.01999 19.39C8.40285 19.1377 7.68218 19.2683 7.19999 19.74L7.13999 19.8C6.76488 20.1756 6.25583 20.3866 5.72499 20.3866C5.19416 20.3866 4.6851 20.1756 4.30999 19.8C3.93439 19.4249 3.72339 18.9158 3.72339 18.385C3.72339 17.8542 3.93439 17.3451 4.30999 16.97L4.36999 16.91C4.8417 16.4278 4.97231 15.7071 4.69999 15.09C4.44094 14.4855 3.84758 14.0926 3.18999 14.09H2.99999C2.46955 14.09 1.96084 13.8793 1.58577 13.5042C1.2107 13.1291 0.999992 12.6204 0.999992 12.09C0.999992 11.5596 1.2107 11.0509 1.58577 10.6758C1.96084 10.3007 2.46955 10.09 2.99999 10.09H3.08999C3.76731 10.0776 4.36607 9.65571 4.60999 9.02999C4.86231 8.41285 4.7317 7.69218 4.25999 7.20999L4.19999 7.14999C3.82439 6.77488 3.61339 6.26583 3.61339 5.73499C3.61339 5.20416 3.82439 4.6951 4.19999 4.31999C4.5751 3.94439 5.08415 3.73339 5.61499 3.73339C6.14582 3.73339 6.65488 3.94439 7.02999 4.31999L7.08999 4.37999C7.57218 4.8517 8.29285 4.98231 8.90999 4.70999H8.99999C9.60447 4.45094 9.99733 3.85758 9.99999 3.19999V2.99999C9.99999 2.46955 10.2107 1.96084 10.5858 1.58577C10.9609 1.2107 11.4696 0.999992 12 0.999992C12.5304 0.999992 13.0391 1.2107 13.4142 1.58577C13.7893 1.96084 14 2.46955 14 2.99999V3.08999C14.0026 3.74758 14.3955 4.34094 15 4.59999C15.6171 4.87231 16.3378 4.7417 16.82 4.26999L16.88 4.19999C17.2551 3.82439 17.7642 3.61339 18.295 3.61339C18.8258 3.61339 19.3349 3.82439 19.71 4.19999C20.0856 4.5751 20.2966 5.08416 20.2966 5.61499C20.2966 6.14583 20.0856 6.65489 19.71 7.02999L19.65 7.08999C19.1683 7.57218 19.0377 8.29285 19.31 8.90999V8.99999C19.569 9.60447 20.1624 9.99733 20.82 9.99999H21C21.5304 9.99999 22.0391 10.2107 22.4142 10.5858C22.7893 10.9609 23 11.4696 23 12C23 12.5304 22.7893 13.0391 22.4142 13.4142C22.0391 13.7893 21.5304 14 21 14H20.91C20.2524 14.0026 19.659 14.3955 19.4 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h3>Simple by Design</h3>
+            <p>No complicated settings or tech knowledge required. Just upload your file, choose a format, and convert—perfect for users who want results without the hassle.</p>
+          </div>
+          
+          <div class="feature-card">
+            <div class="feature-icon security">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h3>Security guaranteed</h3>
+            <p>We delete uploaded file instantly after conversion ends. 24 hours. No link, file access to your files after privacy is 100% guaranteed. Read more about security.</p>
+          </div>
+          
+          <div class="feature-card">
+            <div class="feature-icon devices">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="5" y="2" width="14" height="20" rx="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 18H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h3>All devices supported</h3>
+            <p>Convert Captain works good on all platforms: desktop and mobile. There is no need to download and install any software.</p>
+          </div>
+        </div>
+      </main>
+      {% endblock %}

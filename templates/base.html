@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link 
+    rel="icon" 
+    href="{{ url_for('static', filename='favicon-256.png') }}" 
+    type="image/x-icon"
+  />
+  <title>{% block title %}Convert Captain{% endblock %}</title>
+  <meta name="description" content="{% block description %}Convert your files easily{% endblock %}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <div class="file-converter-container">
+    <div class="converter-background">
+      <div class="background-wave"></div>
+    </div>
+
+    <header class="converter-header">
+      <div class="header-inner">
+        <div class="logo-container">
+         <h1><a href="{{ url_for('index') }}" style="text-decoration: none; color: inherit;">CONVERT CAPTAIN</a></h1>
+        </div>
+
+        <nav class="format-options">
+          <ul>
+            <li><a href="#" class="format-option">Convert to PNG</a></li>
+            <li><a href="#" class="format-option">Convert to PDF</a></li>
+            <li><a href="#" class="format-option">Convert to JPG</a></li>
+            <li><a href="{{ url_for('tiers') }}" class="format-option">Plans</a></li>
+          </ul>
+        </nav>
+
+        <div class="my-files">
+          {% if current_user.is_authenticated %}
+            <a href="{{ url_for('profile') }}">{{ current_user.name or current_user.email }}</a>
+          {% else %}
+            <a href="{{ url_for('login') }}">Login</a>
+          {% endif %}
+        </div>
+      </div>
+    </header>
+
+    <main class="converter-main">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="converter-footer">
+      <div class="footer-content">
+        <p>© 2025 File Converter. All rights reserved.</p>
+      </div>
+    </footer>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+  <!-- ↓ tell your JS if the user is authenticated -->
+  <script>window.IS_AUTH = {{ current_user.is_authenticated|tojson }};</script>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+{% block extra_scripts %}{% endblock %}
+</html>
