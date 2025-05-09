@@ -5,6 +5,7 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 {% endblock %}
 
 {% block content %}
@@ -12,10 +13,9 @@
   <section class="profile-header">
     <div class="profile-avatar-container">
       <img src="https://ui-avatars.com/api/?name={{ current_user.name }}&background=random" alt="{{ current_user.name }}" class="profile-avatar">
-<span class="profile-tier-badge {{ current_user.plan.name|lower }}">
-  {{ current_user.plan.name|capitalize }}
-</span>
-
+      <span class="profile-tier-badge {{ current_user.plan.name|lower }}">
+        {{ current_user.plan.name|capitalize }}
+      </span>
     </div>
     
     <div class="profile-info">
@@ -31,12 +31,10 @@
           <div class="stat-value" id="conversions-month">{{ conversions_month or 0 }}</div>
           <div class="stat-label">Conversions This Month</div>
         </div>
-
       </div>
     </div>
     
     <div class="profile-actions">
-     
       <a href="{{ url_for('tiers') }}" class="btn btn-primary">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -58,8 +56,6 @@
       </div>
       
       <div class="conversion-metrics">
-
-        
         <div class="metric-item">
           <div class="metric-icon efficiency-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -68,8 +64,7 @@
           </div>
           <div class="metric-info">
             <h3>Conversion Streak</h3>
-           <p>{{ streak }} day{{ '' if streak == 1 else 's' }}</p>
-
+            <p>{{ streak }} day{{ '' if streak == 1 else 's' }}</p>
           </div>
         </div>
         
@@ -82,17 +77,13 @@
           </div>
           <div class="metric-info">
             <h3>Conversions Remaining</h3>
-            <p>
-
-         <p id="conversions-today">
-{% if current_user.plan.conversion_limit %}
-  {{ current_user.plan.conversion_limit - current_user.conversion_count }} of {{ current_user.plan.conversion_limit }}
-{% else %}
-  Unlimited
-{% endif %}
-
-</p>
-    </p>
+            <p id="conversions-today">
+              {% if current_user.plan.conversion_limit %}
+                {{ current_user.plan.conversion_limit - current_user.conversion_count }} of {{ current_user.plan.conversion_limit }}
+              {% else %}
+                Unlimited
+              {% endif %}
+            </p>
           </div>
         </div>
       </div>
@@ -149,7 +140,6 @@
           </div>
         </div>
       </div>
-      
     </section>
     
     <!-- Subscription Section -->
@@ -158,86 +148,73 @@
       
       <div class="current-plan-container">
         <div class="plan-header">
-<div class="plan-name {{ current_user.plan.name|lower }}">
-  {{ current_user.plan.name|capitalize }}
-</div>
-<div class="plan-price">
-  {% if current_user.plan.name == 'free' %}
-    $0<span>/month</span>
-  {% elif current_user.plan.name == 'plus' %}
-    $4.99<span>/month</span>
-  {% elif current_user.plan.name == 'pro' %}
-    $19.99<span>/month</span>
-  {% endif %}
-</div>
-
-          
+          <div class="plan-name {{ current_user.plan.name|lower }}">
+            {{ current_user.plan.name|capitalize }}
           </div>
-   
+          <div class="plan-price">
+            {% if current_user.plan.name == 'free' %}
+              $0<span>/month</span>
+            {% elif current_user.plan.name == 'plus' %}
+              $4.99<span>/month</span>
+            {% elif current_user.plan.name == 'pro' %}
+              $19.99<span>/month</span>
+            {% endif %}
+          </div>
+        </div>
         
         <div class="plan-features">
           <div class="plan-feature-item">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-
-  {{ current_user.plan.conversion_limit if current_user.plan.conversion_limit else 'Unlimited' }} conversions
-  {% if current_user.plan.name in ['free', 'plus'] %}
-    /day
-  {% endif %}
-
+            {{ current_user.plan.conversion_limit if current_user.plan.conversion_limit else 'Unlimited' }} conversions
+            {% if current_user.plan.name in ['free', 'plus'] %}
+              /day
+            {% endif %}
           </div>
-          </div>
+        </div>
 
-          <div class="plan-feature-item">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-{% if current_user.plan.name == 'pro' %}
-  <span>Priority conversion</span>
-{% else %}
-  <span>Standard conversion speed</span>
-{% endif %}
-
-          </div>
- 
-
+        <div class="plan-feature-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          {% if current_user.plan.name == 'pro' %}
+            <span>Priority conversion</span>
+          {% else %}
+            <span>Standard conversion speed</span>
+          {% endif %}
         </div>
         
-{% if current_user.plan.name != 'pro' %}
-  <a href="{{ url_for('tiers') }}" class="btn btn-primary upgrade-btn">Upgrade Plan</a>
-{% endif %}
-
+        {% if current_user.plan.name != 'pro' %}
+          <a href="{{ url_for('tiers') }}" class="btn btn-primary upgrade-btn">Upgrade Plan</a>
+        {% endif %}
       </div>
     </section>
     
-<!-- Payment History Section -->
-<section class="profile-section payment-section">
-  <h2 class="section-title">Payment History</h2>
-
-  {% if payment_history %}
-    <div class="payment-list">
-      {% for payment in payment_history %}
-        <div class="payment-item">
-          <div class="payment-info">
-            <div class="payment-date">{{ payment.date.strftime('%Y-%m-%d') }}</div>
-            <div class="payment-plan">{{ payment.plan|capitalize }}</div>
-          </div>
-          <div class="payment-amount">${{ "%.2f"|format(payment.amount) }}</div>
-          <div class="payment-status {{ payment.status|lower }}">{{ payment.status }}</div>
+    <!-- Payment History Section -->
+    <section class="profile-section payment-section">
+      <h2 class="section-title">Payment History</h2>
+      
+      {% if payment_history %}
+        <div class="payment-list">
+          {% for payment in payment_history %}
+            <div class="payment-item">
+              <div class="payment-info">
+                <div class="payment-date">{{ payment.date.strftime('%Y-%m-%d') }}</div>
+                <div class="payment-plan">{{ payment.plan|capitalize }}</div>
+              </div>
+              <div class="payment-amount">${{ "%.2f"|format(payment.amount) }}</div>
+              <div class="payment-status {{ payment.status|lower }}">{{ payment.status }}</div>
+            </div>
+          {% endfor %}
         </div>
-      {% endfor %}
-    </div>
-  {% else %}
-    <div class="no-payment-history">
-      <p>No payment history available for your free account.</p>
-      <a href="{{ url_for('tiers') }}" class="view-all-link">View premium plans</a>
-    </div>
-  {% endif %}
-</section>
-
-    
-
+      {% else %}
+        <div class="no-payment-history">
+          <p>No payment history available for your free account.</p>
+          <a href="{{ url_for('tiers') }}" class="view-all-link">View premium plans</a>
+        </div>
+      {% endif %}
+    </section>
   </div>
 </div>
 {% endblock %}
@@ -247,7 +224,5 @@
 <script>
   window.userConversionData = {{ chart_data | tojson | safe }};
 </script>
-
-
 <script src="{{ url_for('static', filename='profile.js') }}"></script>
 {% endblock %}

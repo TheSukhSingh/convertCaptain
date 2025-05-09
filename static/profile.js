@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
+  // Check if we're on a mobile device
+  const isMobile = window.innerWidth <= 768;
+  
   // Initialize the activity chart
   const activityCtx = document.getElementById('activity-chart').getContext('2d');
   
@@ -7,24 +10,24 @@ document.addEventListener('DOMContentLoaded', function() {
   for (let i = 6; i >= 0; i--) {
     const date = new Date();
     date.setDate(date.getDate() - i);
-    days.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
+    days.push(date.toLocaleDateString('en-US', { weekday: isMobile ? 'short' : 'short' }));
   }
   
+  // Create chart with responsive options
   const activityChart = new Chart(activityCtx, {
     type: 'line',
     data: {
       labels: days,
       datasets: [{
         label: 'Conversions',
-       data: window.userConversionData || [0, 0, 0, 0, 0, 0, 0],
-
+        data: window.userConversionData || [0, 0, 0, 0, 0, 0, 0],
         borderColor: '#3b82f6',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         borderWidth: 3,
         tension: 0.3,
         pointBackgroundColor: '#3b82f6',
-        pointRadius: 4,
-        pointHoverRadius: 6,
+        pointRadius: isMobile ? 3 : 4,
+        pointHoverRadius: isMobile ? 5 : 6,
         fill: true
       }]
     },
@@ -39,12 +42,20 @@ document.addEventListener('DOMContentLoaded', function() {
             color: 'rgba(0, 0, 0, 0.05)'
           },
           ticks: {
-            stepSize: 5
+            stepSize: 5,
+            font: {
+              size: isMobile ? 10 : 12
+            }
           }
         },
         x: {
           grid: {
             display: false
+          },
+          ticks: {
+            font: {
+              size: isMobile ? 10 : 12
+            }
           }
         }
       },
@@ -60,13 +71,13 @@ document.addEventListener('DOMContentLoaded', function() {
           bodyColor: '#64748b',
           borderColor: '#e2e8f0',
           borderWidth: 1,
-          padding: 10,
+          padding: isMobile ? 8 : 10,
           titleFont: {
-            size: 14,
+            size: isMobile ? 12 : 14,
             weight: 'bold'
           },
           bodyFont: {
-            size: 13
+            size: isMobile ? 11 : 13
           },
           callbacks: {
             title: function(items) {
@@ -81,43 +92,43 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Animation for stats
+  // Handle window resize for chart responsiveness
+  window.addEventListener('resize', function() {
+    const newIsMobile = window.innerWidth <= 768;
+    if (newIsMobile !== isMobile) {
+      location.reload(); // Refresh the page to rebuild the chart with appropriate settings
+    }
+  });
+
+  // Animation for stats with different speed based on device
   const animateStats = () => {
     const statValues = document.querySelectorAll('.stat-value');
+    const animationSpeed = isMobile ? 30 : 50;
     
     statValues.forEach((stat) => {
       const finalValue = stat.textContent;
-      let startValue = 0;
       
-      if (finalValue.includes('sec')) {
-        const numValue = parseFloat(finalValue);
-        startValue = 0;
-        
-        const counter = setInterval(() => {
-          if (startValue < numValue) {
-            startValue += 0.1;
-            stat.textContent = startValue.toFixed(1) + ' sec';
-          } else {
-            clearInterval(counter);
-            stat.textContent = finalValue;
-          }
-        }, 50);
-      } else {
+      if (!isNaN(parseInt(finalValue))) {
         const numValue = parseInt(finalValue);
+        let startValue = 0;
+        
+        // Adjust increment based on the final value
+        const increment = Math.max(1, Math.floor(numValue / 20));
         
         const counter = setInterval(() => {
           if (startValue < numValue) {
-            startValue++;
+            startValue += increment;
+            if (startValue > numValue) startValue = numValue;
             stat.textContent = startValue;
           } else {
             clearInterval(counter);
           }
-        }, 100);
+        }, animationSpeed);
       }
     });
   };
 
-  // Toast notification function
+  // Toast notification function with mobile adaptations
   const showToast = (message, type = 'info') => {
     const toastContainer = document.getElementById('toast-container') || createToastContainer();
     
@@ -127,13 +138,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     toastContainer.appendChild(toast);
     
-    // Auto remove after 3 seconds
+    // Shorter display time on mobile
+    const displayTime = isMobile ? 2500 : 3000;
+    
     setTimeout(() => {
       toast.style.animation = 'slide-out 0.3s forwards';
       setTimeout(() => {
         toast.remove();
       }, 300);
-    }, 3000);
+    }, displayTime);
   };
 
   // Create toast container if it doesn't exist
@@ -145,18 +158,21 @@ document.addEventListener('DOMContentLoaded', function() {
     return container;
   };
 
-  // Initialize animations
-  animateStats();
+  // Initialize animations with a small delay
+  setTimeout(() => {
+    animateStats();
+  }, 300);
   
-  // Stagger animations for smoother loading
+  // Stagger animations for smoother loading with faster timing on mobile
+  const staggerDelay = isMobile ? 80 : 100;
   setTimeout(() => {
     document.querySelectorAll('.profile-section').forEach((section, index) => {
       setTimeout(() => {
         section.style.opacity = '1';
         section.style.transform = 'translateY(0)';
-      }, index * 100);
+      }, index * staggerDelay);
     });
-  }, 300);
+  }, 200);
   
   // Handle button click events
   document.querySelectorAll('.btn').forEach(button => {
@@ -168,11 +184,30 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Links for demo purposes
-  document.querySelectorAll('.recommendation-link, .view-all-link').forEach(link => {
-    link.addEventListener('click', function(e) {
-      e.preventDefault();
-      showToast('This feature will be available soon!', 'info');
+  // Add touch-friendly interactions for mobile
+  if (isMobile) {
+    document.querySelectorAll('.tip-item').forEach(item => {
+      item.addEventListener('touchstart', function() {
+        this.style.backgroundColor = '#f1f5f9';
+      });
+      
+      item.addEventListener('touchend', function() {
+        setTimeout(() => {
+          this.style.backgroundColor = '#f8fafc';
+        }, 100);
+      });
     });
-  });
+    
+    document.querySelectorAll('.metric-item').forEach(item => {
+      item.addEventListener('touchstart', function() {
+        this.style.transform = 'translateY(-2px)';
+      });
+      
+      item.addEventListener('touchend', function() {
+        setTimeout(() => {
+          this.style.transform = 'translateY(0)';
+        }, 100);
+      });
+    });
+  }
 });

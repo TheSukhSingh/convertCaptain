@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 /* Global styles */
@@ -21,6 +20,7 @@ body {
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
 }
 
 /* Background */
@@ -100,7 +100,7 @@ body {
 }
 
 .format-option {
-
+  display: flex;
   align-items: center;
 }
 
@@ -137,6 +137,7 @@ body {
   margin: 0 auto;
   text-align: center;
   flex: 1;
+  padding: 2rem;
 }
 
 .main-title {
@@ -154,21 +155,8 @@ body {
 
 /* Drop zone */
 .drop-zone {
-  width: 700px;    /* ↑ 1.5× wider */
-  max-width: 900px;    /* ↑ 1.5× wider */
-  height: 200px;   /* ↓ use min-height so it can expand */
-  border: 2px dashed #cbd5e1;
-  border-radius: 8px;
-  margin: 0 auto;
-  background: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: all 0.3s;
-}
-.show-zone {
   width: 100%;
-  max-width: 900px;    /* ↑ 1.5× wider */
+  max-width: 700px;
   height: 200px;
   border: 2px dashed #cbd5e1;
   border-radius: 8px;
@@ -178,6 +166,15 @@ body {
   justify-content: center;
   align-items: center;
   transition: all 0.3s;
+}
+
+.show-zone {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .drop-zone.dragging {
@@ -220,6 +217,7 @@ body {
 }
 
 .btn {
+  display: flex;
   align-items: center;
   justify-content: center;
   padding: 0.75rem 1.5rem;
@@ -252,20 +250,25 @@ body {
 .btn-secondary:hover {
   background-color: #cbd5e1;
 }
+
+.format-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+/* Features */
 .features-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
-
-  /* ↓ pull it up closer to the converter UI */
-  margin-top: 2rem;
-
-  /* ↓ prevent it from stretching full-width */
+  margin-top: 4rem;
   max-width: 1000px;
   margin-left: auto;
   margin-right: auto;
 }
-
 
 .feature-card {
   background-color: white;
@@ -283,9 +286,8 @@ body {
   height: 60px;
   border-radius: 8px;
   margin-bottom: 1.5rem;
-
-  
 }
+
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -380,6 +382,10 @@ button:disabled {
   border-left: 4px solid #0ea5e9;
 }
 
+.toast.error {
+  border-left: 4px solid #ef4444;
+}
+
 @keyframes slide-in {
   from {
     transform: translateX(100%);
@@ -402,68 +408,27 @@ button:disabled {
   }
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .converter-header {
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
-  }
-  
-  .format-options ul {
-    gap: 1rem;
-    justify-content: center;
-    margin: 0.5rem 0;
-  }
-  
-  .main-title {
-    font-size: 2rem;
-  }
-  
-  .button-group {
-    flex-direction: column;
-  }
-  
-  .converter-footer {
-    padding: 1rem 0;
-  }
-  
-  .footer-content {
-    padding: 0 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .format-options ul {
-    gap: 0.5rem;
-  }
-  
-  .format-options a {
-    padding: 0.5rem;
-    font-size: 0.9rem;
-  }
-  
-  .features-container {
-    grid-template-columns: 1fr;
-  }
-}
-
-.converter-nav ul {
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.converter-nav li {
-  margin: 0.25rem 0.5rem;
-}
-
-.header-inner {
+/* Image preview */
+#image-preview {
+  max-width: 100%;
+  margin-bottom: 1rem;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  width: 100%;
 }
 
+#image-preview img {
+  max-height: 100px;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+/* Format option active state */
+.format-option.active {
+  background-color: #1d4ed8;
+  color: white;
+}
 
 .auth-container {
   max-width: 400px;
@@ -505,7 +470,6 @@ button:disabled {
   width: 100%;
 }
 
-
 .auth-form input:focus {
   outline: none;
   border-color: #3b82f6;
@@ -522,4 +486,135 @@ button:disabled {
   color: #3b82f6;
   text-decoration: none;
   font-weight: 500;
+}
+
+/* Mobile responsive enhancements */
+@media (max-width: 768px) {
+  .converter-header {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  
+  .header-inner {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .format-options ul {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 0.5rem 0;
+  }
+  
+  .main-title {
+    font-size: 1.8rem;
+    margin-top: 1rem;
+  }
+  
+  .main-subtitle {
+    font-size: 1rem;
+    margin: 0.5rem 0 1.5rem;
+  }
+  
+  .converter-main {
+    padding: 1rem;
+  }
+  
+  .drop-zone {
+    max-width: 100%;
+    height: 180px;
+  }
+  
+  .format-buttons {
+    flex-direction: column;
+    width: 100%;
+    padding: 0 1rem;
+  }
+  
+  .format-option {
+    width: 100%;
+  }
+  
+  .button-group {
+    flex-direction: column;
+    width: 100%;
+    padding: 0 1rem;
+  }
+  
+  #initial-actions,
+  #conversion-actions {
+    width: 100%;
+  }
+  
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .features-container {
+    grid-template-columns: 1fr;
+    margin-top: 2rem;
+    gap: 1rem;
+  }
+  
+  .feature-card {
+    padding: 1.5rem;
+    margin-bottom: 0;
+  }
+  
+  .converter-footer {
+    padding: 1rem 0;
+    margin-top: 2rem;
+  }
+  
+  .toast-container {
+    bottom: 10px;
+    right: 10px;
+    left: 10px;
+  }
+  
+  .toast {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .upload-icon {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .drop-zone {
+    height: 150px;
+  }
+  
+  .feature-icon {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 1rem;
+  }
+  
+  .feature-card h3 {
+    font-size: 1.1rem;
+  }
+  
+  .feature-card p {
+    font-size: 0.85rem;
+  }
+  
+  .format-options a {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+  }
+  
+  .my-files a {
+    font-size: 0.9rem;
+  }
+  
+  .btn {
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+  }
 }
