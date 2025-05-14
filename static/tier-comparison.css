@@ -352,11 +352,10 @@
   }
   
  .faq-answer {
-  padding: 0 1.5rem;
-  max-height: 0;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  display: none;
+   height: 0;
+   overflow: hidden;
+   transition: all 0.3s ease;
+   padding: 0 1.5rem;
   text-align: left !important;
 }
 

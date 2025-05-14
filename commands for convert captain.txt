@@ -1,0 +1,32 @@
+1. To Login Into our hosting -> 
+ssh root@143.198.229.236
+New@123Password
+
+
+2. To restart the application -> 
+sudo systemctl restart myapp
+
+
+3. To update your code (If you are updating a lot of things) -> 
+cd /var/www
+sudo rm -rf myapp
+git clone << Add your git repo link here >> myapp
+cd myapp
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+pip install gunicorn
+nano .env
+<< Save your .env file here by copy pasting it, then press Ctrl+O, Enter, Ctrl+X >>
+rm -f instance/users.db
+sudo systemctl restart myapp
+
+
+4. To update .env file (Credentials file) -> 
+cd /var/www/myapp
+sudo rm .env
+nano .env
+<< Save your .env file here by copy pasting it, then press Ctrl+O, Enter, Ctrl+X >>
+sudo systemctl restart myapp
+
