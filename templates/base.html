@@ -22,7 +22,9 @@
     <header class="converter-header">
       <div class="header-inner">
         <div class="logo-container">
-         <h1><a href="{{ url_for('index') }}" style="text-decoration: none; color: inherit;">CONVERT CAPTAIN</a></h1>
+         <h1><a href="{{ url_for('index') }}" style="text-decoration: none; color: inherit;">
+          <img src="{{ url_for('static', filename='favicon-256.png') }}" height="45px" alt="Convert Captain">
+         </a></h1>
         </div>
 
         <nav class="format-options">

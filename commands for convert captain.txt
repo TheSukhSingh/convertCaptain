@@ -30,3 +30,43 @@ nano .env
 << Save your .env file here by copy pasting it, then press Ctrl+O, Enter, Ctrl+X >>
 sudo systemctl restart myapp
 
+
+
+
+
+
+
+
+
+
+Edge Cases & Missing Event Handlers
+To cover the rest of the payment lifecycle, you should also add handlers for at least:
+
+invoice.payment_failed
+→ mark the subscription as unpaid, notify the user or downgrade them if retries exhaust.
+
+checkout.session.async_payment_failed
+→ captures cases where Checkout couldn’t complete payment immediately, e.g. for APMs (automated payment methods).
+
+customer.subscription.deleted (or customer.subscription.updated with status=‘canceled’)
+→ if a user cancels on Stripe’s end or you programmatically cancel, you can immediately downgrade them in your app.
+
+Optionally, you might also handle:
+
+invoice.upcoming → to warn users before renewal
+
+customer.updated → if they update payment methods
+
+
+
+
+
+ in a real‐world app you’ll almost always want at least one more webhook:
+
+invoice.payment_failed
+• If a card is declined or expires, Stripe will retry a few times, but you’ll never get a “failed” notification unless you listen for it. Without it, you risk giving people access even though their payment didn’t go through (or never downgrading them if retries exhaust).
+
+And at minimum one of these, depending on how you let customers cancel:
+
+customer.subscription.deleted (or customer.subscription.updated → status: canceled)
+• Catches voluntary cancellations in their Stripe Customer Portal or ones you cancel from your dashboard. If you don’t watch for it, they’ll lose access on Stripe’s end but still see “pro” features in your app.

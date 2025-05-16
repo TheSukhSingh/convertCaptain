@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request, render_template, send_file, redirect, session, url_for, flash
+from flask import Flask, jsonify, request, render_template, send_file, redirect, session, url_for, flash, g, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user, UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -13,15 +13,12 @@ from datetime import date, datetime, timedelta
 import stripe
 from werkzeug.utils import secure_filename
 from sqlalchemy import func
+import uuid
 
-# --- Load environment variables ---
 load_dotenv()
 
-# --- Flask setup ---
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
-
-# --- Database setup ---
 BASE_DIR = os.getcwd()
 INSTANCE_DIR = os.path.join(BASE_DIR, 'instance')
 os.makedirs(INSTANCE_DIR, exist_ok=True)
@@ -30,18 +27,14 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{DB_PATH}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-
-# --- Login manager ---
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
-# ↓ return a 401 JSON for XHR/fetch instead of a 302 redirect
 @login_manager.unauthorized_handler
 def unauthorized_callback():
     if request.is_json or request.headers.get('X-Requested-With')=='XMLHttpRequest':
         return jsonify({'error':'login required'}), 401
     return redirect(url_for('login'))
 
-# --- Stripe setup ---
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
 YOUR_DOMAIN = os.getenv('YOUR_DOMAIN')
@@ -49,13 +42,12 @@ PLUS_PRICE_ID = os.getenv('PLUS_PRICE_ID')
 PRO_PRICE_ID = os.getenv('PRO_PRICE_ID')
 stripe.api_key = STRIPE_SECRET_KEY
 
-# --- Models ---
 class Plan(db.Model):
     __tablename__ = 'plans'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, nullable=False)   # free, plus, pro
+    name = db.Column(db.String(50), unique=True, nullable=False)   
     conversion_limit = db.Column(db.Integer, nullable=False)
-    file_size_limit = db.Column(db.Integer, nullable=True)         # None = unlimited
+    file_size_limit = db.Column(db.Integer, nullable=True)       
     batch_allowed = db.Column(db.Boolean, default=False)
     users = db.relationship('User', backref='plan', lazy=True)
 
@@ -87,18 +79,21 @@ class PaymentHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     date = db.Column(db.DateTime, default=datetime.utcnow)
-    plan = db.Column(db.String(50))  # 'plus', 'pro'
+    plan = db.Column(db.String(50)) 
     amount = db.Column(db.Float)
     status = db.Column(db.String(50))
     stripe_session_id = db.Column(db.String(100), unique=True, nullable=False)
 
+class Guest(db.Model):
+    __tablename__ = 'guest'
+    anon_id         = db.Column(db.String(36), primary_key=True)
+    conversion_count = db.Column(db.Integer, default=0, nullable=False)
+    last_reset      = db.Column(db.Date, default=date.today, nullable=False)
 
-# --- User loader ---
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# --- HEIC support ---
 pillow_heif.register_heif_opener()
 OUTPUT_DIR = os.path.join(BASE_DIR, 'converted')
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -120,15 +115,49 @@ def reset_and_check_subscription():
         if current_user.last_reset < today:
             current_user.conversion_count = 0
             current_user.last_reset = today
-        # Expire past subscriptions
         if current_user.subscription_end and current_user.subscription_end < datetime.utcnow():
             free_plan = Plan.query.filter_by(name='free').first()
-            current_user.plan = free_plan     # Plan object, not string
+            current_user.plan = free_plan 
             current_user.subscription_end = None
         db.session.commit()
 
+@app.before_request
+def load_guest():
+    # if user is logged in, skip guest logic
+    if current_user.is_authenticated:
+        return
 
-# --- Routes ---
+    anon_id = request.cookies.get('anon_id')
+    # if no cookie → mint a new anon_id and record it
+    if not anon_id:
+        anon_id = str(uuid.uuid4())
+        guest = Guest(anon_id=anon_id)
+        db.session.add(guest)
+        # prepare a response so we can set the cookie later
+        g.new_guest_resp = make_response()
+        g.new_guest_resp.set_cookie(
+            'anon_id',
+            anon_id,
+            max_age=60*60*24,    # 1 day
+            httponly=True,
+            samesite='Lax'
+        )
+    else:
+        guest = Guest.query.get(anon_id)
+        if not guest:
+            # rare: cookie present but no DB row → recreate it
+            guest = Guest(anon_id=anon_id)
+            db.session.add(guest)
+
+    # reset daily count if needed
+    today = date.today()
+    if guest.last_reset < today:
+        guest.conversion_count = 0
+        guest.last_reset = today
+
+    db.session.commit()
+    g.guest = guest
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -181,7 +210,6 @@ def tiers():
 @app.route('/profile')
 @login_required
 def profile():
-    # 7-day chart data
     today = datetime.utcnow().date()
     week_ago = today - timedelta(days=6)
     raw = db.session.query(
@@ -190,7 +218,6 @@ def profile():
         ConversionLog.user_id==current_user.id,
         ConversionLog.timestamp>=week_ago
     ).group_by(func.date(ConversionLog.timestamp)).all()
-    # streak
     streak = 0
     for i in range(30):
         d = date.today() - timedelta(days=i)
@@ -198,16 +225,12 @@ def profile():
             streak += 1
         else:
             break
-    # chart data
     date_map = {str(d):c for d,c in raw}
     days = [(today - timedelta(days=i)).isoformat() for i in range(6,-1,-1)]
     chart_data = [date_map.get(d,0) for d in days]
-    # payments
     payments = PaymentHistory.query.filter_by(user_id=current_user.id).order_by(PaymentHistory.date.desc()).all()
     today = datetime.utcnow().date()
-    # beginning of current month
     month_start = today.replace(day=1)
-
     conversions_today = (
         ConversionLog.query
         .filter(
@@ -254,20 +277,15 @@ def create_checkout_session(plan):
     )
     return redirect(sess.url, code=303)
 
-
 def update_user_subscription(user, sub, session_id):
-    # 1️⃣ Figure out which plan they bought
     price_id = sub['items']['data'][0]['price']['id']
     plan_name = 'plus' if price_id == PLUS_PRICE_ID else 'pro'
     plan_obj  = Plan.query.filter_by(name=plan_name).first()
 
-    # 2️⃣ Normalize period end to UTC datetime
     ends_at = datetime.utcfromtimestamp(sub['current_period_end'])
 
-    # 3️⃣ Pull the real amount (in case you change it in Stripe later)
     amount = sub['items']['data'][0]['price']['unit_amount'] / 100.0
 
-    # 4️⃣ Idempotent payment log
     if not PaymentHistory.query.filter_by(stripe_session_id=session_id).first():
         payment = PaymentHistory(
             user_id=user.id,
@@ -278,14 +296,10 @@ def update_user_subscription(user, sub, session_id):
         )
         db.session.add(payment)
 
-    # 5️⃣ Update the user’s plan & expiry
     user.plan = plan_obj
     user.subscription_end = ends_at
 
     db.session.commit()
-
-
-
 
 @app.route('/stripe_webhook', methods=['POST'])
 def stripe_webhook():
@@ -297,8 +311,7 @@ def stripe_webhook():
         )
     except Exception as e:
         return str(e), 400
-
-    # ① First-time checkout
+    
     if event['type'] == 'checkout.session.completed':
         sess = event['data']['object']
         user = User.query.filter_by(stripe_customer_id=sess['customer']).first()
@@ -306,7 +319,6 @@ def stripe_webhook():
         if user:
             update_user_subscription(user, sub, sess['id'])
 
-    # ② Monthly renewal
     elif event['type'] == 'invoice.payment_succeeded':
         inv  = event['data']['object']
         sub  = stripe.Subscription.retrieve(inv['subscription'])
@@ -316,33 +328,43 @@ def stripe_webhook():
 
     return '', 200
 
-
-
-
-
-
-
 @app.route('/convert', methods=['POST'])
 @login_required
 def convert():
-    if not current_user.is_authenticated:
-        return jsonify({'error':'login required'}), 401
+# 1️⃣ Figure out who’s converting and what their limit is
+    if current_user.is_authenticated:
+        actor        = current_user
+        limit        = actor.plan.conversion_limit
+        used         = actor.conversion_count
+    else:
+        # guest path: g.guest was loaded in @before_request
+        actor        = g.guest
+        limit        = 3
+        used         = actor.conversion_count
+
+    # 2️⃣ Enforce the limit (we only ever have 1 file at a time)
+    if used + 1 > limit:
+        return "Daily limit reached", 403
+
+    # 3️⃣ Grab the single upload
+    uploaded = request.files.get('files') or request.files.get('file')
+    if not uploaded:
+        return "No file uploaded", 400
+    
+    
     files = request.files.getlist('files')
     fmt = request.form.get('format', 'jpeg').lower()
-    plan = current_user.plan  # now uses the Plan model
+    plan = current_user.plan 
 
-    # Only Pro can batch-upload
     if len(files) > 1 and not plan.batch_allowed:
         flash('Batch upload is only available for Pro plan.')
         return redirect(url_for('tiers'))
 
-    # Daily limit check
     if current_user.conversion_count >= plan.conversion_limit:
         return "Daily limit reached", 403
 
     outputs = []
     for f in files:
-        # size check
         f.seek(0, os.SEEK_END)
         size_mb = f.tell() / (1024 * 1024)
         f.seek(0)
@@ -350,10 +372,7 @@ def convert():
             flash(f"{f.filename} exceeds file size limit of {plan.file_size_limit} MB.")
             return redirect(request.url)
 
-        # load image
         image = convert_heic_to_image(f) if f.filename.lower().endswith('.heic') else Image.open(f)
-
-        # convert
         if fmt == 'pdf':
             data = convert_image_to_pdf(image)
             mime, ext = 'application/pdf', 'pdf'
@@ -365,27 +384,20 @@ def convert():
 
         filename = f"{secure_filename(os.path.splitext(f.filename)[0])}.{ext}"
         outputs.append((mime, data, filename))
-
-        # log conversion
         log = ConversionLog(
             user_id=current_user.id,
             original_filename=secure_filename(f.filename),
             output_format=fmt
         )
         db.session.add(log)
-
-    # update count & commit everything
     current_user.conversion_count += len(files)
     db.session.commit()
-
-    # single vs. zip response
     if len(outputs) == 1:
         mime, data, filename = outputs[0]
         return send_file(io.BytesIO(data),
                          as_attachment=True,
                          download_name=filename,
                          mimetype=mime)
-
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, 'w') as zf:
         for mime, data, filename in outputs:
@@ -395,8 +407,6 @@ def convert():
                      as_attachment=True,
                      download_name='converted_files.zip',
                      mimetype='application/zip')
-
-
 
 if __name__ == '__main__':
     with app.app_context():
