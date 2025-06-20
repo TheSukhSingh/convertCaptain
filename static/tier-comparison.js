@@ -6,8 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Monthly prices (default)
     const monthlyPrices = {
-      plus: '$9.99',
-      pro: '$19.99'
+      plus: '$4.99',
+      pro: '$9.99'
     };
     
     // Annual prices (20% discount)

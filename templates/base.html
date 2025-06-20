@@ -10,57 +10,126 @@
   />
   <title>{% block title %}Convert Captain{% endblock %}</title>
   <meta name="description" content="{% block description %}Convert your files easily{% endblock %}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
   {% block extra_head %}{% endblock %}
+  <!-- <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"> -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='newstyles.css') }}">
+{% block extra_head_later %}{% endblock %}
+<script>
+  // this must come *before* script.js!
+  window.CURRENT_PLAN = "{{ current_user.is_authenticated 
+                             and current_user.plan.name 
+                             or 'free' }}";
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-VT208PCZXK"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+
+
+
+gtag('config', 'G-VT208PCZXK');
+</script>
+
+
 </head>
 <body>
+
   <div class="file-converter-container">
     <div class="converter-background">
       <div class="background-wave"></div>
     </div>
 
-    <header class="converter-header">
-      <div class="header-inner">
-        <div class="logo-container">
-         <h1><a href="{{ url_for('index') }}" style="text-decoration: none; color: inherit;">
-          <img src="{{ url_for('static', filename='favicon-256.png') }}" height="45px" alt="Convert Captain">
-         </a></h1>
-        </div>
 
-        <nav class="format-options">
-          <ul>
-            <li><a href="#" class="format-option">Convert to PNG</a></li>
-            <li><a href="#" class="format-option">Convert to PDF</a></li>
-            <li><a href="#" class="format-option">Convert to JPG</a></li>
-            <li><a href="{{ url_for('tiers') }}" class="format-option">Plans</a></li>
-          </ul>
-        </nav>
 
-        <div class="my-files">
-          {% if current_user.is_authenticated %}
-            <a href="{{ url_for('profile') }}">{{ current_user.name or current_user.email }}</a>
+
+
+
+
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="logo">
+                      <a href="{{ url_for('index') }}">
+                        <div class="logo-icon">         
+                          <img src="{{ url_for('static', filename='favicon-256.png') }}" height="45px" alt="Convert Captain">
+                        </div>
+                      </a>
+                    </div>
+                    <nav class="nav">
+                        <a href="{{ url_for('index') }}" class="nav-link">Convert to PNG</a>
+                        <a href="{{ url_for('index') }}" class="nav-link">Convert to PDF</a>
+                        <a href="{{ url_for('index') }}" class="nav-link">Convert to JPG</a>
+                        <a href="{{ url_for('tiers') }}" class="nav-link">Plans</a>
+                    </nav>
+                </div>
+                          {% if current_user.is_authenticated %}
+
+                <a href="{{ url_for('profile') }}" class="account-btn">
+
+
+                  
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>My Account</span>
+                  </a>
+
+
+
           {% else %}
-            <a href="{{ url_for('login') }}">Login</a>
+          <a href="{{ url_for('register') }}" class="account-btn">
+
+
+                  
+                   
+                    <span>Sign Up</span>
+          </a>
           {% endif %}
+    
+            </div>
         </div>
-      </div>
     </header>
 
-    <main class="converter-main">
+
+
+
+
+  
       {% block content %}{% endblock %}
-    </main>
+   
 
     <footer class="converter-footer">
-      <div class="footer-content">
-        <p>© 2025 File Converter. All rights reserved.</p>
+      <div class="footer-content-footer">
+        <p>© 2025 Convert Captain. All rights reserved.</p>
       </div>
     </footer>
   </div>
 
   <div id="toast-container" class="toast-container"></div>
   <!-- ↓ tell your JS if the user is authenticated -->
-  <script>window.IS_AUTH = {{ current_user.is_authenticated|tojson }};</script>
+  <script>window.IS_AUTH = {{ current_user.is_authenticated|tojson }};</script>  <!-- ↓ inject plan limits & usage -->
+<script>
+  window.REMAINING_CONVERSIONS = {{ 
+    (current_user.plan.conversion_limit - current_user.conversion_count)
+    if current_user.is_authenticated 
+    else session.get('guest_conversion_count', 0)
+  }};
+  window.CONVERSION_LIMIT = {{ 
+    current_user.plan.conversion_limit 
+    if current_user.is_authenticated 
+    else 3
+  }};
+  window.BATCH_ALLOWED = {{ 
+    (current_user.plan.batch_allowed and True)
+    if current_user.is_authenticated 
+    else False
+  }};
+</script>
+
   <script src="{{ url_for('static', filename='script.js') }}"></script>
+  {% block extra_scripts %}{% endblock %}
 </body>
-{% block extra_scripts %}{% endblock %}
 </html>

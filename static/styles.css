@@ -5,7 +5,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Inter', sans-serif;
+  /* font-family: 'Inter', sans-serif; */
 }
 
 body {
@@ -30,7 +30,7 @@ body {
   left: 0;
   right: 0;
   height: 400px;
-  background: linear-gradient(135deg, #e0f2fe, #bfdbfe);
+  /* background: linear-gradient(135deg, #e0f2fe, #bfdbfe); */
   z-index: -1;
   overflow: hidden;
 }
@@ -44,6 +44,31 @@ body {
   background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="1" d="M0,288L48,272C96,256,192,224,288,197.3C384,171,480,149,576,165.3C672,181,768,235,864,250.7C960,267,1056,245,1152,224C1248,203,1344,181,1392,170.7L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
   background-size: cover;
 }
+/* .main-features {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem 2rem;
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem auto 2.5rem;
+  max-width: 600px;
+} */
+
+/* .main-features li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #111;            
+  font-size: 1.05rem;
+  font-weight: 500;
+} */
+
+/* .main-features .tick {
+  color: #28a428;          
+  font-size: 1.25rem;
+  line-height: 1;
+} */
+
 
 /* Header */
 .converter-header {
@@ -51,9 +76,12 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  max-width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
   width: 100%;
+    position: relative;
+  z-index: 10;
+  background-color: #f5f7fa; 
 }
 
 .logo-container {
@@ -157,14 +185,15 @@ body {
 .drop-zone {
   width: 100%;
   max-width: 700px;
-  height: 200px;
+  min-height: 200px;
+  height: auto;
   border: 2px dashed #cbd5e1;
   border-radius: 8px;
   margin: 0 auto;
   background: white;
-  display: flex;
+  /* display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: center; */
   transition: all 0.3s;
 }
 
@@ -201,6 +230,7 @@ body {
 .drop-text {
   color: #64748b;
   font-size: 0.9rem;
+  margin-bottom: 0.55em;
 }
 
 /* File input */
@@ -217,7 +247,6 @@ body {
 }
 
 .btn {
-  display: flex;
   align-items: center;
   justify-content: center;
   padding: 0.75rem 1.5rem;
@@ -260,7 +289,7 @@ body {
 }
 
 /* Features */
-.features-container {
+/* .features-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
@@ -268,9 +297,16 @@ body {
   max-width: 1000px;
   margin-left: auto;
   margin-right: auto;
-}
+} */
 
-.feature-card {
+
+/* slightly reduce the feature-text weight */
+/* .main-features li {
+  font-weight: 400;   
+} */
+
+
+/* .feature-card {
   background-color: white;
   border-radius: 8px;
   padding: 2rem;
@@ -286,7 +322,7 @@ body {
   height: 60px;
   border-radius: 8px;
   margin-bottom: 1.5rem;
-}
+} */
 
 button:disabled {
   opacity: 0.5;
@@ -323,7 +359,7 @@ button:disabled {
   color: #0ea5e9;
 }
 
-.feature-card h3 {
+/* .feature-card h3 {
   font-size: 1.2rem;
   margin-bottom: 0.75rem;
   color: #1e293b;
@@ -333,7 +369,7 @@ button:disabled {
   color: #64748b;
   line-height: 1.5;
   font-size: 0.9rem;
-}
+} */
 
 /* Footer */
 .converter-footer {
@@ -431,8 +467,9 @@ button:disabled {
 }
 
 .auth-container {
-  max-width: 400px;
-  margin: 3rem auto;
+  max-width: 100%;
+  min-width: 25rem;
+  margin: 5rem 40%;
   background: white;
   padding: 2rem;
   border-radius: 12px;
@@ -510,7 +547,7 @@ button:disabled {
   
   .main-title {
     font-size: 1.8rem;
-    margin-top: 1rem;
+
   }
   
   .main-subtitle {
@@ -524,7 +561,8 @@ button:disabled {
   
   .drop-zone {
     max-width: 100%;
-    height: 180px;
+    min-height: 180px;
+    height: auto;
   }
   
   .format-buttons {
@@ -553,7 +591,7 @@ button:disabled {
     justify-content: center;
   }
   
-  .features-container {
+  /* .features-container {
     grid-template-columns: 1fr;
     margin-top: 2rem;
     gap: 1rem;
@@ -562,7 +600,7 @@ button:disabled {
   .feature-card {
     padding: 1.5rem;
     margin-bottom: 0;
-  }
+  } */
   
   .converter-footer {
     padding: 1rem 0;
@@ -587,9 +625,10 @@ button:disabled {
   }
   
   .drop-zone {
-    height: 150px;
+    min-height: 150px;
+    height: auto;
   }
-  
+/*   
   .feature-icon {
     width: 50px;
     height: 50px;
@@ -602,7 +641,7 @@ button:disabled {
   
   .feature-card p {
     font-size: 0.85rem;
-  }
+  } */
   
   .format-options a {
     padding: 0.4rem 0.6rem;
@@ -617,4 +656,526 @@ button:disabled {
     padding: 0.65rem 1rem;
     font-size: 0.85rem;
   }
+}
+
+
+
+
+
+
+
+
+/* a clean horizontal bar */
+.section-divider {
+  border: none;
+  height: 3px;
+  width: 80px;                 /* adjust length */
+  background-color: #0066ff;   /* match your primary color */
+  margin: 3rem auto;           /* vertical spacing, centered */
+}
+
+/* center & size the new section title */
+.section-heading {
+  text-align: center;
+  font-size: 1.75rem;
+  margin: 2rem 0 1rem;         /* space above and below */
+  color: #333;                 /* or your darker text color */
+}
+
+/* optional: give your next section some grid styling */
+/* .features-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  padding: 0 1rem;
+  max-width: 1000px;
+  margin: 0 auto 4rem;
+} */
+
+
+
+
+
+
+
+
+
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #1d4ed8;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+.user-account {
+  display: flex;
+  align-items: center;
+}
+
+.user-account a {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #0f66cc;
+  font-weight: 500;
+}
+
+/* Dummy logo */
+.dummy-logo {
+  height: 40px;
+  width: auto;
+}
+
+/* Secure upload indicator */
+.secure-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.secure-check {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(16, 185, 129, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.secure-upload p {
+  color: #10b981;
+  font-weight: 600;
+}
+
+/* Pricing Section */
+.pricing-section {
+  margin: 5rem 0;
+}
+
+.section-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: #1e293b;
+}
+
+.pricing-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.pricing-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  position: relative;
+  padding: 2rem;
+  transition: transform 0.3s, box-shadow 0.3s;
+  overflow: hidden;
+}
+/* Header buttons */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.pricing-card .ribbon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  overflow: hidden;
+  width: 70px;   /* adjust to taste */
+  height: 70px;  /* same as width */
+}
+
+/* 3) The angled label */
+.pricing-card .ribbon span {
+  position: absolute;
+  display: block;
+  width: 100px;                 /* enough to cover corner */
+  padding: 6px 0;               /* vertical space in ribbon */
+  background: #0066ff;          /* your brand-blue */
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+  transform: rotate(45deg);
+  transform-origin: 0 0;
+  top: 8px;                     /* nudges ribbon down */
+  right: -30px;                 /* nudges ribbon left */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+.nav-btn {
+  background-color: #1d4ed8;   /* your primary blue */
+  color: white;
+  border: none;                /* no more outline */
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  transition: background-color 0.2s, transform 0.1s;
+  text-decoration: none;       /* absolutely no underlines */
+}
+.nav-btn:hover {
+  background-color: #1e40af; 
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+
+.pricing-card.popular {
+   position: relative;
+  transform: scale(1.05);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border: 2px solid #3b82f6;
+  z-index: 10;
+}
+.upload-confirmation {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1.25rem;
+  background: #e6ffed;                 /* pale green bg */
+  border: 1.5px solid #28a428;         /* darker green border */
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(40,164,40,0.2);
+  animation: popIn 0.35s ease-out;
+}
+
+.upload-confirmation .tickmark {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  background: #28a428;                 /* solid green circle */
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  animation: rotateIn 0.45s ease-out;
+}
+
+/* pop the whole badge in */
+@keyframes popIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+/* spin the checkmark into place */
+@keyframes rotateIn {
+  from { transform: rotate(-90deg); opacity: 0; }
+  to   { transform: rotate(0deg);    opacity: 1; }
+}
+
+
+.popular-tag {
+  position: absolute;
+  top: 28px;
+  right: -35px;
+  background: #3b82f6;
+  color: white;
+  padding: 0.25rem 2rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transform: rotate(45deg);
+  width: 150px;
+  text-align: center;
+}
+
+.pricing-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.pricing-header h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.pricing-price {
+  margin-bottom: 0.75rem;
+}
+
+.currency, .period {
+  font-size: 1rem;
+  color: #64748b;
+  vertical-align: middle;
+}
+
+.amount {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.pricing-subtitle {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+/* .pricing-features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  margin-bottom: 1.5rem;
+}
+
+.pricing-features li {
+  padding: 0.75rem 0;
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+
+.pricing-features li::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  margin-right: 0.75rem;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.feature-included::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
+}
+
+.feature-excluded::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23ef4444' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 6L6 18M6 6l12 12'/%3E%3C/svg%3E");
+} */
+
+.pricing-button {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  background: #1d4ed8;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.pricing-button:hover {
+  background: #1e40af;
+}
+
+.pricing-button.current {
+  background: #e2e8f0;
+  color: #1e293b;
+  cursor: default;
+}
+
+@media (max-width: 768px) {
+  .pricing-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .pricing-card.popular {
+    transform: none;
+    order: -1;
+  }
+}
+
+
+
+.upload-status,
+.convert-status {
+  margin: 0 1rem;
+  font-size: 0.875rem;
+}
+.convert-btn {
+  padding: 0.25rem 0.5rem;
+  border: none;
+  background-color: #3b82f6;
+  color: #fff;
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+.convert-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Format selector */
+.format-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.format-select {
+  padding: 0.25rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.25rem;
+}
+
+
+
+/* ── Drop-zone width tweaks ── */
+.drop-zone { max-width: 800px; }
+
+/* Per-file list */
+.uploaded-files { list-style: none; padding: 0; margin: 1.5rem auto; }
+.file-item {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0.75rem; border-bottom: 1px solid #e5e7eb;
+}
+.format-logo { 
+  width: 28px;
+}
+.file-name { 
+  flex: 1; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  white-space: nowrap;
+}
+.upload-status { flex: 1; min-width: 80px; }
+.format-select { flex: 1; min-width: 80px; padding: 0.25rem; }
+.file-size { flex: 1; text-align: right; min-width: 60px; }
+.remove-btn {
+  background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #9ca3af;
+}
+.remove-btn:hover { color: #dc2626; }
+.convert-status { flex: 1; min-width: 100px; }
+
+/* Batch & actions */
+.batch-container, .action-buttons {
+  display: flex; justify-content: center; align-items: center; gap: 1rem;
+}
+.batch-container[hidden], .action-buttons[hidden] { display: none; }
+.action-buttons button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Rotating icon */
+.rotating-logo { width: 16px; height: 16px; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+/*─────────────────────────────────────────────────────────────────*/
+/* 1) Center the initial “Drop files” UI inside the dashed box */
+.drop-zone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+/* 2) Once files exist, hide that initial content */
+.drop-zone.has-files .drop-zone-content {
+  display: none;
+}
+
+/* 3) Make the white dashed box span the full width of its container */
+.drop-zone {
+  width: 100%;
+}
+
+/* 4) If you need a wider container overall, bump this up */
+.convert-section {
+  max-width: 1000px; /* or whatever fits your layout */
+}
+
+/* 5) Give the batch + action rows their own lines */
+.batch-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+/* 6) Optional spacing between buttons */
+.action-buttons button {
+  margin: 0 0.5rem;
+}
+/*─────────────────────────────────────────────────────────────────*/
+/* Make the whole drop‐zone a column flexbox */
+.drop-zone {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Push the controls block to the bottom */
+.drop-zone .batch-container {
+    margin-top: auto;
+    margin-bottom: 1rem;
+}
+.drop-zone .action-buttons {
+  margin-top: auto;
+  /* optional: add a little breathing room from the bottom */
+  margin-bottom: 2rem;
+}
+/* 1) Make the file list always fill its container */
+.drop-zone .uploaded-files {
+  width: 100%;
+  margin: 1.5rem 0;       /* you can keep your top/bottom gutter */
+  list-style: none;
+  padding: 0;
+}
+
+/* 2) Always stretch each row to fill 100%,
+      and push the first + last items to the edges */
+.drop-zone .uploaded-files .file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* new */
+  gap: 1rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* 3) (Optional) explicitly size your flex children */
+.drop-zone .uploaded-files .file-name,
+.drop-zone .uploaded-files .upload-status,
+.drop-zone .uploaded-files .format-select,
+.drop-zone .uploaded-files .file-size,
+.drop-zone .uploaded-files .convert-status {
+  flex: 1;
+  min-width: 80px;     /* tweak per column */
+}
+
+/* 4) Ensure the remove-button never flexes */
+.drop-zone .uploaded-files .remove-btn {
+  flex: 0 0 auto;
+}
+/* ── Center the “choose files” UI when there are no uploads ── */
+.drop-zone {
+  display: flex;
+  flex-direction: column;
+}
+
+/* When empty, center everything */
+.drop-zone:not(.has-files) {
+  justify-content: center;
+  align-items: center;
+}
+
+/* When files exist, revert to top-aligned list */
+.drop-zone.has-files {
+  justify-content: flex-start;
+  align-items: stretch;
+}
+/* hide the file-list entirely when there are no uploads */
+.drop-zone:not(.has-files) .uploaded-files {
+  display: none;
 }

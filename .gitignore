@@ -6,3 +6,9 @@
 
 # SQLite instance dir
 instance/
+
+oldscript.js
+oldscript2.js
+
+oldstatic/
+oldtemplates/

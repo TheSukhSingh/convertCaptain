@@ -4,6 +4,8 @@
 {% block description %}Choose the right plan for your file conversion needs{% endblock %}
 {% block extra_head %}
   <link rel="stylesheet" href="{{ url_for('static', filename='tier-comparison.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
 {% endblock %}
 
 {% block content %}
@@ -22,46 +24,53 @@
         </div> -->
         
         <div class="pricing-tables">
-          <div class="pricing-card">
+          <div class="pricing-card2">
             <div class="pricing-header">
               <h2>Free</h2>
               <div class="pricing-price">
                 <span class="price">$0</span>
                 <span class="period">/month</span>
               </div>
-              <p class="pricing-description">Perfect for occasional conversions</p>
+              <p class="pricing-description">Least Popular and Lower Quality</p>
             </div>
             <div class="pricing-features">
               <ul>
-                <li class="feature-included">
+                <li class="feature-included2">
                   <span class="feature-icon check">✓</span>
                   <span class="feature-text">3 conversions per day</span>
                 </li>
-  
+            <li class="feature-included2">
+                  <span class="feature-icon check">✓</span>
+                  <span class="feature-text">Basic Quality Images</span>
+                </li>
+                
                
-                <li class="feature-included">
+                <li class="feature-included2">
                   <span class="feature-icon check">✓</span>
                   <span class="feature-text">Max 15 MB per file</span>
                 </li>
                 
-                 <li class="feature-not-included">
-                  <span class="feature-icon x">×</span>
-                  <span class="feature-text">Batch processing</span>
-                </li>
-
-                <li class="feature-included">
-                  <span class="feature-icon check">✓</span>
-                  <span class="feature-text">Cross-platform: works in any modern browser</span>
-                </li>
-
-
-                
-
-                <li class="feature-included">
+ 
+         
+                  <li class="feature-included2">
                   <span class="feature-icon check">✓</span>
                   <span class="feature-text">Zero data retention
 </span>
                 </li>
+                 <li class="feature-not-included">
+                  <span class="feature-icon x">×</span>
+                  <span class="feature-text">Batch processing</span>
+                </li>
+                 <li class="feature-not-included">
+                  <span class="feature-icon x">×</span>
+                  <span class="feature-text">Cross-platform Compatible</span>
+                </li>
+
+
+
+                
+
+
 
                
 
@@ -70,108 +79,154 @@
                 
               </ul>
             </div>
-            <div class="pricing-cta">
-              <button class="btn btn-secondary pricing-btn">Current Plan</button>
-            </div>
+<div class="pricing-cta">
+  {% if not current_user.is_authenticated %}
+    <a href="{{ url_for('login') }}" class="btn btn-secondary pricing-btn">
+      Login to Upgrade
+    </a>
+  {% elif current_user.plan.name == 'free' %}
+    <button class="btn btn-secondary pricing-btn" disabled>
+      Current Plan
+    </button>
+  {% else %}
+    <button class="btn btn-secondary pricing-btn" disabled>
+      Downgrade Not Available
+    </button>
+  {% endif %}
+</div>
           </div>
           
-          <div class="pricing-card popular">
-            <div class="popular-tag">Most Popular</div>
+          <div class="pricing-card2 popular">
+            <div class="popular-tag2">Most Popular</div>
             <div class="pricing-header">
               <h2>Plus</h2>
               <div class="pricing-price">
                 <span class="price" id="plus-price">$4.99</span>
                 <span class="period">/month</span>
               </div>
-              <p class="pricing-description">For regular conversion needs</p>
+              <p class="pricing-description">Best Value For Conversions</p>
             </div>
             <div class="pricing-features">
               <ul>
-                <li class="feature-included">
+                <li class="feature-included2">
                   <span class="feature-icon check">✓</span>
                   <span class="feature-text">15 conversions per day</span>
                 </li>
+                <li class="feature-included2">
+                  <span class="feature-icon check">✓</span>
+                  <span class="feature-text">High Quality Images</span>
+                </li>
 
                 
-                <li class="feature-included">
+                <li class="feature-included2">
                   <span class="feature-icon check">✓</span>
                   <span class="feature-text">Max 30 MB per file</span>
                 </li>
                 
-                       <li class="feature-not-included">
-                  <span class="feature-icon x">×</span>
-                  <span class="feature-text">Batch processing</span>
-                </li>
 
-                <li class="feature-included">
-                  <span class="feature-icon check">✓</span>
-                  <span class="feature-text">Cross-platform: works in any modern browser</span>
-                </li>
-
-
-                
-                <li class="feature-included">
+            
+                <li class="feature-included2">
                   <span class="feature-icon check">✓</span>
                   <span class="feature-text">Zero data retention
 </span>
                 </li>
+
+                <li class="feature-included2">
+                  <span class="feature-icon check">✓</span>
+                  <span class="feature-text">Batch Processing</span>
+                </li>
+                <li class="feature-included2">
+                  <span class="feature-icon check">✓</span>
+                  <span class="feature-text">Cross-platform Compatible</span>
+                </li>
+
+
+                
+
                 
                 
               </ul>
             </div>
-            <div class="pricing-cta">
-<a href="{{ url_for('create_checkout_session', plan='plus') }}" class="btn btn-primary">
-  Upgrade to Plus
-</a>
-            </div>
+<div class="pricing-cta">
+  {% if not current_user.is_authenticated %}
+    <a href="{{ url_for('login') }}" class="btn btn-primary pricing-btn">
+      Login to Upgrade
+    </a>
+  {% elif current_user.plan.name == 'plus' %}
+    <button class="btn btn-primary pricing-btn" disabled>
+      Current Plan
+    </button>
+  {% else %}
+    <a href="{{ url_for('create_checkout_session', plan='plus') }}"
+       class="btn btn-primary pricing-btn">
+      Upgrade to Plus
+    </a>
+  {% endif %}
+</div>
           </div>
           
-          <div class="pricing-card">
+          <div class="pricing-card2">
             <div class="pricing-header">
               <h2>Pro</h2>
               <div class="pricing-price">
-                <span class="price" id="pro-price">$19.99</span>
+                <span class="price" id="pro-price">$9.99</span>
                 <span class="period">/month</span>
               </div>
-              <p class="pricing-description">For power users with high volume</p>
+              <p class="pricing-description">Premier</p>
             </div>
             <div class="pricing-features">
               <ul>
-                <li class="feature-included">
+                <li class="feature-included2">
                   <span class="feature-icon check">✓</span>
-                  <span class="feature-text">200 conversions per day</span>
+                  <span class="feature-text">300 conversions per day</span>
                 </li>
                 
-                <li class="feature-included">
+                <li class="feature-included2">
                   <span class="feature-icon check">✓</span>
-                  <span class="feature-text">Unlimited File Size</span>
+                  <span class="feature-text">Highest Image Quality</span>
                 </li>
-                
-                <li class="feature-included">
+                <li class="feature-included2">
                   <span class="feature-icon check">✓</span>
-                  <span class="feature-text">Batch processing</span>
+                  <span class="feature-text">Unlimited File Size (BONUS)</span>
+                </li>
+          
+                
+                <li class="feature-included2">
+                  <span class="feature-icon check">✓</span>
+                  <span class="feature-text">Zero Data Retention</span>
                 </li>
 
 
-                <li class="feature-included">
+                <li class="feature-included2">
                   <span class="feature-icon check">✓</span>
-                  <span class="feature-text">Cross-platform: works in any modern browser</span>
+                  <span class="feature-text">Batch Processing</span>
                 </li>
                 
-                <li class="feature-included">
+                <li class="feature-included2">
                   <span class="feature-icon check">✓</span>
-                  <span class="feature-text">Zero data retention
+                  <span class="feature-text">Cross-Platform Compatible
 </span>
                 </li>
 
                 
               </ul>
             </div>
-            <div class="pricing-cta">
-<a href="{{ url_for('create_checkout_session', plan='pro') }}" class="btn btn-primary">
-  Upgrade to Pro
-</a>
-            </div>
+<div class="pricing-cta">
+  {% if not current_user.is_authenticated %}
+    <a href="{{ url_for('login') }}" class="btn btn-primary pricing-btn">
+      Login to Upgrade
+    </a>
+  {% elif current_user.plan.name == 'pro' %}
+    <button class="btn btn-primary pricing-btn" disabled>
+      Current Plan
+    </button>
+  {% else %}
+    <a href="{{ url_for('create_checkout_session', plan='pro') }}"
+       class="btn btn-primary pricing-btn">
+      Upgrade to Pro
+    </a>
+  {% endif %}
+</div>
           </div>
         </div>
         
@@ -193,7 +248,7 @@
                   <td>Daily conversions</td>
                   <td>3</td>
                   <td>15</td>
-                  <td>200</td>
+                  <td>300</td>
                 </tr>
 
                 <tr>
@@ -213,8 +268,8 @@
                 <tr>
                   <td>Batch processing</td>
                   <td><span class="feature-icon x table-x">×</span></td>
-                  <td><span class="feature-icon x table-x">×</span></td>
               
+                  <td><span class="feature-icon check">✓</span></td>
                   <td><span class="feature-icon check">✓</span></td>
                 </tr>
               </tbody>

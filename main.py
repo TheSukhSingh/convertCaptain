@@ -12,21 +12,29 @@ import zipfile
 from datetime import date, datetime, timedelta
 import stripe
 from werkzeug.utils import secure_filename
-from sqlalchemy import func
-import uuid
-
+from sqlalchemy import func, text
+from flask_migrate    import Migrate
+from datetime import datetime
 load_dotenv()
+from sqlalchemy.exc import OperationalError
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
-BASE_DIR = os.getcwd()
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_DIR = os.path.join(BASE_DIR, "converted")
+
 INSTANCE_DIR = os.path.join(BASE_DIR, 'instance')
 os.makedirs(INSTANCE_DIR, exist_ok=True)
 DB_PATH = os.path.join(INSTANCE_DIR, 'users.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{DB_PATH}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+
+
+
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 @login_manager.unauthorized_handler
@@ -41,6 +49,7 @@ YOUR_DOMAIN = os.getenv('YOUR_DOMAIN')
 PLUS_PRICE_ID = os.getenv('PLUS_PRICE_ID')
 PRO_PRICE_ID = os.getenv('PRO_PRICE_ID')
 stripe.api_key = STRIPE_SECRET_KEY
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 
 class Plan(db.Model):
     __tablename__ = 'plans'
@@ -67,12 +76,14 @@ class User(UserMixin, db.Model):
     payment_history = db.relationship('PaymentHistory', backref='user', lazy=True)
 
 class ConversionLog(db.Model):
-    __tablename__ = 'conversion_log'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    original_filename = db.Column(db.String(200))
-    output_format = db.Column(db.String(10))
+    __table_args__     = (
+        db.Index('ix_conversionlog_user_timestamp', 'user_id', 'timestamp'),
+    )
+    id                 = db.Column(db.Integer, primary_key=True)
+    user_id            = db.Column(db.Integer, db.ForeignKey('user.id'), index=True)
+    timestamp          = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    original_filename  = db.Column(db.String(128))
+    output_format      = db.Column(db.String(10))
 
 class PaymentHistory(db.Model):
     __tablename__ = 'payment_history'
@@ -95,68 +106,24 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 pillow_heif.register_heif_opener()
-OUTPUT_DIR = os.path.join(BASE_DIR, 'converted')
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+
 def convert_heic_to_image(file_storage):
-    heif_file = pillow_heif.read_heif(file_storage)
+    # 1. Seek to beginning in case the FileStorage pointer is anywhere else
+    file_storage.stream.seek(0)
+    raw_bytes = file_storage.read()
+    # 2. Use read_heif with the raw bytes
+    heif_file = pillow_heif.read_heif(data=raw_bytes)
+    # 3. Convert frombytes based on the mode
     return Image.frombytes(heif_file.mode, heif_file.size, heif_file.data, 'raw')
+
 
 def convert_image_to_pdf(image):
     img_bytes = io.BytesIO()
     image.save(img_bytes, format='PNG')
     return img2pdf.convert(img_bytes.getvalue())
 
-@app.before_request
-def reset_and_check_subscription():
-    if current_user.is_authenticated:
-        db.session.refresh(current_user)
-        today = date.today()
-        if current_user.last_reset < today:
-            current_user.conversion_count = 0
-            current_user.last_reset = today
-        if current_user.subscription_end and current_user.subscription_end < datetime.utcnow():
-            free_plan = Plan.query.filter_by(name='free').first()
-            current_user.plan = free_plan 
-            current_user.subscription_end = None
-        db.session.commit()
-
-@app.before_request
-def load_guest():
-    # if user is logged in, skip guest logic
-    if current_user.is_authenticated:
-        return
-
-    anon_id = request.cookies.get('anon_id')
-    # if no cookie → mint a new anon_id and record it
-    if not anon_id:
-        anon_id = str(uuid.uuid4())
-        guest = Guest(anon_id=anon_id)
-        db.session.add(guest)
-        # prepare a response so we can set the cookie later
-        g.new_guest_resp = make_response()
-        g.new_guest_resp.set_cookie(
-            'anon_id',
-            anon_id,
-            max_age=60*60*24,    # 1 day
-            httponly=True,
-            samesite='Lax'
-        )
-    else:
-        guest = Guest.query.get(anon_id)
-        if not guest:
-            # rare: cookie present but no DB row → recreate it
-            guest = Guest(anon_id=anon_id)
-            db.session.add(guest)
-
-    # reset daily count if needed
-    today = date.today()
-    if guest.last_reset < today:
-        guest.conversion_count = 0
-        guest.last_reset = today
-
-    db.session.commit()
-    g.guest = guest
 
 @app.route('/')
 def index():
@@ -247,13 +214,24 @@ def profile():
         )
         .count()
     )
+    # pull the plan’s limit (None → unlimited)
+    conversion_limit = current_user.plan.conversion_limit
+
+    # compute remaining (None stays None)
+    remaining_today = (
+        max(conversion_limit - conversions_today, 0)
+        if conversion_limit is not None else
+        None
+    )
     return render_template(
         'profile.html',
         chart_data=chart_data,
         streak=streak,
         payment_history=payments,
         conversions_today=conversions_today,
-        conversions_month=conversions_month
+        conversions_month=conversions_month,
+        conversion_limit=conversion_limit,
+        remaining_today=remaining_today,
     )
 
 @app.route('/create-checkout-session/<plan>')
@@ -298,7 +276,6 @@ def update_user_subscription(user, sub, session_id):
 
     user.plan = plan_obj
     user.subscription_end = ends_at
-
     db.session.commit()
 
 @app.route('/stripe_webhook', methods=['POST'])
@@ -325,96 +302,217 @@ def stripe_webhook():
         user = User.query.filter_by(stripe_customer_id=sub['customer']).first()
         if user:
             update_user_subscription(user, sub, inv['id'])
-
     return '', 200
 
-@app.route('/convert', methods=['POST'])
-@login_required
-def convert():
-# 1️⃣ Figure out who’s converting and what their limit is
+
+@app.route('/api/remaining_conversions')
+def remaining_conversions():
+    # logged-in user
     if current_user.is_authenticated:
-        actor        = current_user
-        limit        = actor.plan.conversion_limit
-        used         = actor.conversion_count
+        today = datetime.utcnow().date()
+        used = ConversionLog.query.filter(
+            ConversionLog.user_id == current_user.id,
+            func.date(ConversionLog.timestamp) == today
+        ).count()
+        limit = current_user.plan.conversion_limit
     else:
-        # guest path: g.guest was loaded in @before_request
-        actor        = g.guest
-        limit        = 3
-        used         = actor.conversion_count
+        today = datetime.utcnow().date()
+        last_reset = session.get('guest_last_reset')
+        if last_reset != today.isoformat():
+            session['guest_last_reset']       = today.isoformat()
+            session['guest_conversion_count'] = 0
+        used  = session.get('guest_conversion_count', 0)
+        limit = Plan.query.filter_by(name='free').first().conversion_limit
 
-    # 2️⃣ Enforce the limit (we only ever have 1 file at a time)
-    if used + 1 > limit:
-        return "Daily limit reached", 403
+    return jsonify({
+        'remaining': max(limit - used, 0),
+        'limit': limit,
+        'used': used
+    })
 
-    # 3️⃣ Grab the single upload
-    uploaded = request.files.get('files') or request.files.get('file')
-    if not uploaded:
+
+@app.route('/convert', methods=['POST'])
+def convert():
+    # 1. Gather & validate
+    files = request.files.getlist('files') or [request.files.get('file')]
+    files = [f for f in files if f]
+    if not files:
         return "No file uploaded", 400
-    
-    
-    files = request.files.getlist('files')
-    fmt = request.form.get('format', 'jpeg').lower()
-    plan = current_user.plan 
 
-    if len(files) > 1 and not plan.batch_allowed:
-        flash('Batch upload is only available for Pro plan.')
-        return redirect(url_for('tiers'))
-
-    if current_user.conversion_count >= plan.conversion_limit:
-        return "Daily limit reached", 403
-
-    outputs = []
-    for f in files:
-        f.seek(0, os.SEEK_END)
-        size_mb = f.tell() / (1024 * 1024)
-        f.seek(0)
-        if plan.file_size_limit and size_mb > plan.file_size_limit:
-            flash(f"{f.filename} exceeds file size limit of {plan.file_size_limit} MB.")
-            return redirect(request.url)
-
-        image = convert_heic_to_image(f) if f.filename.lower().endswith('.heic') else Image.open(f)
-        if fmt == 'pdf':
-            data = convert_image_to_pdf(image)
-            mime, ext = 'application/pdf', 'pdf'
-        else:
-            buf = io.BytesIO()
-            image.save(buf, format=fmt.upper())
-            data = buf.getvalue()
-            mime, ext = f'image/{fmt}', fmt
-
-        filename = f"{secure_filename(os.path.splitext(f.filename)[0])}.{ext}"
-        outputs.append((mime, data, filename))
-        log = ConversionLog(
-            user_id=current_user.id,
-            original_filename=secure_filename(f.filename),
-            output_format=fmt
+    # 2. Authenticated vs guest
+    if current_user.is_authenticated:
+        # row-lock on the user, no explicit begin()
+        actor = (
+            User.query
+                .filter_by(id=current_user.id)
+                .with_for_update()
+                .first()
         )
-        db.session.add(log)
-    current_user.conversion_count += len(files)
-    db.session.commit()
+
+        # DAILY RESET
+        today = datetime.utcnow().date()
+        if actor.last_reset is None or actor.last_reset < today:
+            actor.last_reset       = today
+            actor.conversion_count = 0
+
+        plan       = actor.plan
+        limit      = plan.conversion_limit
+        used_today = ConversionLog.query.filter(
+            ConversionLog.user_id == actor.id,
+            func.date(ConversionLog.timestamp) == today
+        ).count()
+
+        # batch only for Pro
+        if len(files) > 1 and not plan.batch_allowed:
+            return jsonify({'error':'Batch upload is only for Pro.'}), 403
+
+        # daily cap
+        if used_today + len(files) > limit:
+            return jsonify({'error':'Daily conversion limit reached.'}), 403
+
+        # 3. Convert & log
+        outputs, errors = [], []
+        fmt = request.form.get('format','jpeg').lower()
+        if fmt == 'jpg': fmt = 'jpeg'
+
+        for f in files:
+            try:
+                # size-limit
+                if plan.file_size_limit:
+                    f.stream.seek(0, os.SEEK_END)
+                    size_mb = f.tell()/(1024*1024)
+                    f.stream.seek(0)
+                    if size_mb > plan.file_size_limit:
+                        raise ValueError(f"{f.filename} exceeds {plan.file_size_limit}MB")
+
+                # HEIC/HEIF?
+                lower = f.filename.lower()
+                if lower.endswith(('.heic','.heif')):
+                    try:
+                        f.stream.seek(0)
+                        image = Image.open(f); image.load()
+                    except:
+                        f.stream.seek(0)
+                        raw = f.read()
+                        heif = pillow_heif.read_heif(data=raw)
+                        image = Image.frombytes(heif.mode, heif.size, heif.data, 'raw')
+                else:
+                    f.stream.seek(0)
+                    image = Image.open(f); image.load()
+
+                # ensure RGB/L
+                if image.mode not in ('RGB','L'):
+                    image = image.convert('RGB')
+
+                # render
+                if fmt == 'pdf':
+                    data, mime, ext = convert_image_to_pdf(image), 'application/pdf','pdf'
+                elif fmt == 'png':
+                    buf = io.BytesIO(); image.save(buf,format='PNG')
+                    data, mime, ext = buf.getvalue(),'image/png','png'
+                elif fmt == 'jpeg':
+                    buf = io.BytesIO(); image.save(buf,format='JPEG')
+                    data, mime, ext = buf.getvalue(),'image/jpeg','jpg'
+                else:
+                    raise ValueError(f"Unsupported format: {fmt}")
+
+                name = secure_filename(os.path.splitext(f.filename)[0]) + f".{ext}"
+                outputs.append((mime, data, name))
+
+                # log
+                db.session.add(ConversionLog(
+                    user_id=actor.id,
+                    original_filename=secure_filename(f.filename),
+                    output_format=fmt
+                ))
+
+            except Exception as e:
+                errors.append(f"{f.filename}: {e}")
+
+        # commit *all* logs & actor changes together
+        db.session.commit()
+
+    else:
+
+        # ─── Guest logic ─────────────────────────────────────────────────
+        today_iso = datetime.utcnow().date().isoformat()
+        if session.get('guest_last_reset') != today_iso:
+            session['guest_last_reset']       = today_iso
+            session['guest_conversion_count'] = 0
+
+        used_guest = session.get('guest_conversion_count', 0)
+        limit      = 3
+
+        if len(files) > 1:
+            return jsonify({'error':'Batch upload only for Pro.'}), 403
+        if used_guest + len(files) > limit:
+            return jsonify({'error':'Daily conversion limit reached.'}), 403
+
+        outputs, errors = [], []
+        fmt = request.form.get('format','jpeg').lower()
+        if fmt == 'jpg': 
+            fmt = 'jpeg'
+
+        for f in files:
+            try:
+                f.stream.seek(0)
+                image = Image.open(f); image.load()
+                if image.mode not in ('RGB','L'):
+                    image = image.convert('RGB')
+
+                if fmt == 'pdf':
+                    data, mime, ext = convert_image_to_pdf(image), 'application/pdf', 'pdf'
+                elif fmt == 'png':
+                    buf = io.BytesIO(); image.save(buf, format='PNG')
+                    data, mime, ext = buf.getvalue(), 'image/png', 'png'
+                elif fmt == 'jpeg':
+                    buf = io.BytesIO(); image.save(buf, format='JPEG')
+                    data, mime, ext = buf.getvalue(), 'image/jpeg', 'jpg'
+                else:
+                    raise ValueError(f"Unsupported: {fmt}")
+
+                out_name = secure_filename(os.path.splitext(f.filename)[0]) + f".{ext}"
+                outputs.append((mime, data, out_name))
+
+            except Exception as e:
+                errors.append(f"{f.filename}: {e}")
+
+        session['guest_conversion_count'] = used_guest + len(outputs)
+
+    # ─── 4. If nothing succeeded ───────────────────────────────────────────
+    if not outputs:
+        return make_response(jsonify({'errors': errors}), 400)
+
+    # ─── 5. Return single file or a ZIP ───────────────────────────────────
     if len(outputs) == 1:
-        mime, data, filename = outputs[0]
-        return send_file(io.BytesIO(data),
+        mime, data, name = outputs[0]
+        resp = send_file(io.BytesIO(data),
                          as_attachment=True,
-                         download_name=filename,
+                         download_name=name,
                          mimetype=mime)
-    buf = io.BytesIO()
-    with zipfile.ZipFile(buf, 'w') as zf:
-        for mime, data, filename in outputs:
-            zf.writestr(filename, data)
-    buf.seek(0)
-    return send_file(buf,
-                     as_attachment=True,
-                     download_name='converted_files.zip',
-                     mimetype='application/zip')
+    else:
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, 'w') as zf:
+            for mime, data, name in outputs:
+                zf.writestr(name, data)
+        buf.seek(0)
+        resp = send_file(buf,
+                         as_attachment=True,
+                         download_name='converted_files.zip',
+                         mimetype='application/zip')
+
+    # ─── 6. Attach any per-file errors ───────────────────────────────────
+    if errors:
+        resp.headers['X-Conversion-Errors'] = "; ".join(errors)
+
+    return resp
 
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()
         default_plans = [
             ('free',  3,   15, False),
-            ('plus', 15,   30, False),
-            ('pro', 200, None, True),
+            ('plus', 15,   30, True),
+            ('pro', 300, None, True),
         ]
         for name, conv_limit, size_limit, batch in default_plans:
             if not Plan.query.filter_by(name=name).first():

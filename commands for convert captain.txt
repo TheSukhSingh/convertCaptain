@@ -31,8 +31,9 @@ nano .env
 sudo systemctl restart myapp
 
 
-
-
+id pw 
+sukh@sukh.com
+sukh
 
 
 

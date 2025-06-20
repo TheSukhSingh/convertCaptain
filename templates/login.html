@@ -1,6 +1,37 @@
 {% extends 'base.html' %}
 {% block title %}Login - Convert Captain{% endblock %}
+{% block extra_head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+<style>
+  
+  .converter-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 400px;
+    background: linear-gradient(135deg, #e0f2fe, #bfdbfe);
+    z-index: -1;
+    overflow: hidden;
+}
+html, body {
+  height: 100%;
+  margin: 0;
+}
 
+.file-converter-container {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.converter-footer {
+  margin-top: auto !important;
+}
+
+
+</style>
+{% endblock %}
 {% block content %}
 <div class="auth-container">
   <h2 class="auth-title">Welcome Back 👋</h2>
